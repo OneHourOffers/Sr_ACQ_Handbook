@@ -295,11 +295,16 @@ body { background: var(--bg); color: var(--text); font-family: "DM Sans", sans-s
 
 /* TOOLS */
 .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: all 0.15s; }
+.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: all 0.15s; position: relative; }
 .tool-card:hover { background: var(--surface2); border-color: var(--border2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,65,100,0.08); }
 .tool-name { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
 .tool-action { font-size: 11px; font-weight: 600; color: var(--logo-teal); text-transform: uppercase; letter-spacing: 0.06em; }
 .tool-desc { font-size: 12px; color: var(--text-sec); line-height: 1.55; }
+.copy-btn { position: absolute; top: 12px; right: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-sec); font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.copy-btn:hover { background: var(--logo-teal); border-color: var(--logo-teal); color: #fff; }
+.copy-btn.copied { background: #2d8a5f; border-color: #2d8a5f; color: #fff; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
@@ -1114,14 +1119,46 @@ body { background: var(--bg); color: var(--text); font-family: "DM Sans", sans-s
       <div class="section-subhead-label">Transaction Tools</div>
       <div class="tools-grid">
         <a class="tool-card" href="https://onehouroffers.github.io/Closing_Day/" target="_blank" rel="noopener"><div class="tool-name">Guide to Closing Day</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Step-by-step reference for what happens on closing day.</div></a>
-        <a class="tool-card" href="https://onehouroffers.github.io/Deal_Map/" target="_blank" rel="noopener"><div class="tool-name">Deal Map</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Visual map of the deal pipeline from contract to close.</div></a>
+        <a class="tool-card" href="https://onehouroffers.github.io/Deal_Map/" target="_blank" rel="noopener"><button type="button" class="copy-btn" onclick="copyLink(event, this, 'https://onehouroffers.github.io/Deal_Map/')">Copy link</button><div class="tool-name">Deal Map</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Visual map of deals we've closed &mdash; settlement statements, HUDs, and proof of closings. Share with sellers as social proof.</div></a>
       </div>
     </div>
 
   </main>
 </div>
 
+<div id="toast" class="toast">Link copied to clipboard</div>
+
 <script>
+function copyLink(event, btn, url) {
+  event.preventDefault();
+  event.stopPropagation();
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+      toast.classList.remove('show');
+    }, 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta); done();
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta); done();
+  }
+}
+
 function goSection(btn, id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));

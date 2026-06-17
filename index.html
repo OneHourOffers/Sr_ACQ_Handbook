@@ -523,6 +523,14 @@ body { background: var(--bg); color: var(--text); font-family: "DM Sans", sans-s
   color: var(--amber);
   margin-top: 6px;
 }
+.tc-company-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tc-company-row .tc-company-name { flex: 1; min-width: 0; }
+.tc-company-copy { margin-top: 3px; }
 .tc-company-name {
   font-family: "Syne", sans-serif;
   font-size: 19px;
@@ -1495,7 +1503,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     { state: "Nevada", company: "Equity Title of Nevada", email: "LaylaM@equitynv.com", officer: "Layla McMachen", phone: "(702) 462-6000" },
     { state: "Oklahoma", company: "First American Title", email: "cfournier@firstam.com", officer: "Candice Fournier", phone: "(405) 529-5521" },
     { state: "Ohio", company: "Empora Title", email: "Sabrina@emporatitle.com", officer: "Sabrina Boykin", phone: "(614) 363-0823" },
-    { state: "Ohio (Cleveland)", frequent: true, company: "Innovative Title & Escrow Services LLC", email: "gina@innovativetitle.net", officer: "Gina Markosky", phone: "(216) 635-0870" },
+    { state: "Ohio (Cleveland)", frequent: true, company: "Innovative Title & Escrow Services LLC", email: "owen@innovativetitle.net", officer: "Owen Elias", phone: "(216) 635-0870" },
     { state: "Ohio (Cleveland)", company: "National Title Experts", email: "anthony@mynationaltitle.com", officer: "Anthony Tagliarina, Mark Madden", phones: [{ label: "Anthony", number: "(440) 725-8111" }, { label: "Mark", number: "(216) 299-2047" }], secondary: "mark@mynationaltitle.com" },
     { state: "Pennsylvania", attorney: true, company: "Parkland Abstract", email: "info@parklandabstract.com", officer: "Matthew Koff", phone: "(610) 433-3790" },
     { state: "Texas", company: "Stellar Title", email: "Mavs@stellartitleco.com", officer: "Crystal Aguirre", phone: "(817) 479-5677", secondary: "Crystal@Stellartitleco.com" },
@@ -1555,7 +1563,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
             </div>
           </div>
           <div>
-            <div class="tc-company-name">${escapeHtml(c.company)}</div>
+            <div class="tc-company-row">
+              <div class="tc-company-name">${escapeHtml(c.company)}</div>
+              <button class="tc-copy-btn tc-company-copy" data-copy="${escapeHtml(c.company)}" aria-label="Copy company name" title="Copy company name">${copyIcon}</button>
+            </div>
             ${c.officer ? `<div class="tc-officer"><span class="tc-officer-label">Escrow Officer</span>${escapeHtml(c.officer)}</div>` : ""}
           </div>
           <div class="tc-contact">

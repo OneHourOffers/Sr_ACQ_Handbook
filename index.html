@@ -1615,19 +1615,19 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
         <div class="da-subhead">Contact</div>
         <div class="da-grid">
           <div class="da-field">
-            <label class="da-label" for="da-poc">POC <span class="da-hint">point of contact</span></label>
+            <label class="da-label" for="da-poc">POC <span class="req">*</span><span class="da-hint">point of contact</span></label>
             <input class="da-input" id="da-poc" name="poc" type="text" autocomplete="off" placeholder="If different from signer">
-            <div class="da-err-msg"></div>
+            <div class="da-err-msg">Enter a point of contact.</div>
           </div>
 
           <div class="da-field">
-            <label class="da-label" for="da-phone">Phone</label>
-            <input class="da-input" id="da-phone" name="phone" type="tel" autocomplete="off" placeholder="(555) 555-5555">
-            <div class="da-err-msg"></div>
+            <label class="da-label" for="da-phone">Phone <span class="req">*</span></label>
+            <input class="da-input" id="da-phone" name="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="(555)555-5555">
+            <div class="da-err-msg">Enter a 10-digit phone number.</div>
           </div>
 
           <div class="da-field full">
-            <label class="da-label" for="da-email">E-Mail <span class="da-hint">general contact</span></label>
+            <label class="da-label" for="da-email">E-Mail <span class="req">*</span><span class="da-hint">general contact</span></label>
             <input class="da-input" id="da-email" name="email" type="email" autocomplete="off" placeholder="contact@email.com">
             <div class="da-err-msg">That email doesn't look right.</div>
           </div>
@@ -1929,9 +1929,9 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     {id:'da-address',    key:'Address',         req:true},
     {id:'da-apn',        key:'APN',             req:true},
     {id:'da-coe',        key:'COE',             req:true},
-    {id:'da-poc',        key:'POC'},
-    {id:'da-phone',      key:'Phone'},
-    {id:'da-email',      key:'E-Mail',          email:true}
+    {id:'da-poc',        key:'POC',              req:true},
+    {id:'da-phone',      key:'Phone',            req:true, phone:true},
+    {id:'da-email',      key:'E-Mail',           req:true, email:true}
   ];
 
   // money fields: format on blur; auto-fill EMD at 1% of price until it's edited by hand
@@ -2043,6 +2043,19 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
   pocEl.addEventListener('input', ()=>{ pocTouched = true; });
   genEmailEl.addEventListener('input', ()=>{ emailTouched = true; });
 
+  // Phone: auto-format to (xxx)xxx-xxxx as the user types
+  const phoneEl = el('da-phone');
+  phoneEl.addEventListener('input', ()=>{
+    let d = phoneEl.value.replace(/\D/g, '');
+    if (d.length > 10 && d[0] === '1') d = d.slice(1); // tolerate a leading country code
+    d = d.slice(0, 10);
+    let out = '';
+    if (d.length > 6)      out = '(' + d.slice(0,3) + ')' + d.slice(3,6) + '-' + d.slice(6);
+    else if (d.length > 3) out = '(' + d.slice(0,3) + ')' + d.slice(3);
+    else if (d.length > 0) out = '(' + d;
+    phoneEl.value = out;
+  });
+
   // Quick-add verbiage for Additional Terms
   const SNIPPETS = {
     vacant:   { text: "- Property to be Vacant upon Close of Escrow", sig: "Property to be Vacant upon Close of Escrow", toggle: true },
@@ -2119,6 +2132,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
       let bad = false;
       if(f.req && !val) bad = true;
       if(!bad && f.email && val && !emailRe.test(val)) bad = true;
+      if(!bad && f.phone && val.replace(/\D/g,'').length !== 10) bad = true;
       wrap.classList.toggle('show-err', bad);
       inp.classList.toggle('err', bad);
       if(bad && !firstBad) firstBad = inp;

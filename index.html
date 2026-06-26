@@ -611,33 +611,39 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
   border-color: rgba(30,138,110,0.25);
 }
 
+/* Multi-number cards: each number is its own full-width row, like the email rows */
 .tc-phone-row .tc-phone-items {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
   flex: 1;
   min-width: 0;
   padding-top: 2px;
 }
-.tc-phone-item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.tc-phone-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  font-size: 13px;
+}
 .tc-phone-item .tc-phone-name {
   font-size: 9px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  min-width: 56px;        /* aligns the numbers into a column */
+  flex-shrink: 0;
 }
-.tc-phone-item a { color: var(--text); text-decoration: none; transition: color 0.15s; }
+.tc-phone-item a { color: var(--text); text-decoration: none; transition: color 0.15s; white-space: nowrap; }
 .tc-phone-item a:hover { color: var(--accent); text-decoration: underline; }
-.tc-phone-item .tc-copy-btn { width: 22px; height: 22px; }
-.tc-phone-item .tc-copy-btn svg { width: 11px; height: 11px; }
+.tc-phone-item .tc-copy-btn { margin-left: auto; }   /* push copy button to the card's right edge */
 
 /* Phone numbers stay on one line — never break mid-number (word-break is for long emails only) */
 .tc-contact-link[href^="tel:"] .tc-value { white-space: nowrap; word-break: normal; }
-.tc-phone-item a { white-space: nowrap; }
-.tc-phone-row .tc-phone-items { gap: 8px 16px; }
-.tc-phone-item { gap: 7px; }
+
 
 .tc-no-results {
   grid-column: 1 / -1;
@@ -1443,7 +1449,13 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
         <div class="section-sub">Platforms and calculators used daily in acquisitions. Click any card to log in.</div>
       </div>
 
-      <div class="section-subhead-label" style="margin-top:0">Comping</div>
+      <div class="section-subhead-label" style="margin-top:0">Transaction Tools</div>
+      <div class="tools-grid">
+        <a class="tool-card" href="https://onehouroffers.github.io/Closing_Day/" target="_blank" rel="noopener"><div class="tool-name">Guide to Closing Day</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Step-by-step reference for what happens on closing day.</div></a>
+        <a class="tool-card" href="https://onehouroffers.github.io/Deal_Map/" target="_blank" rel="noopener"><button type="button" class="copy-btn" onclick="copyLink(event, this, 'https://onehouroffers.github.io/Deal_Map/')">Copy link</button><div class="tool-name">Deal Map</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Visual map of deals we've closed &mdash; settlement statements, HUDs, and proof of closings. Share with sellers as social proof.</div></a>
+      </div>
+
+      <div class="section-subhead-label">Comping</div>
       <div class="tools-grid">
         <a class="tool-card" href="https://app.propstream.com" target="_blank" rel="noopener"><div class="tool-name">PropStream</div><div class="tool-action">Login &rarr;</div><div class="tool-desc">Lead generation, property data, and list building for acquisitions.</div></a>
         <a class="tool-card" href="https://app.propelio.com" target="_blank" rel="noopener"><div class="tool-name">Propelio</div><div class="tool-action">Login &rarr;</div><div class="tool-desc">Property research, comps, and motivated seller data.</div></a>
@@ -1452,12 +1464,6 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
       <div class="section-subhead-label">Offer Analysis</div>
       <div class="tools-grid">
         <a class="tool-card" href="https://onehouroffers.github.io/Trap_Calc/" target="_blank" rel="noopener"><div class="tool-name">Trap Calc</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Deal analysis and offer calculator for wholesale real estate.</div></a>
-      </div>
-
-      <div class="section-subhead-label">Transaction Tools</div>
-      <div class="tools-grid">
-        <a class="tool-card" href="https://onehouroffers.github.io/Closing_Day/" target="_blank" rel="noopener"><div class="tool-name">Guide to Closing Day</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Step-by-step reference for what happens on closing day.</div></a>
-        <a class="tool-card" href="https://onehouroffers.github.io/Deal_Map/" target="_blank" rel="noopener"><button type="button" class="copy-btn" onclick="copyLink(event, this, 'https://onehouroffers.github.io/Deal_Map/')">Copy link</button><div class="tool-name">Deal Map</div><div class="tool-action">Open &rarr;</div><div class="tool-desc">Visual map of deals we've closed &mdash; settlement statements, HUDs, and proof of closings. Share with sellers as social proof.</div></a>
       </div>
     </div>
 
@@ -1628,7 +1634,7 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
 
           <div class="da-field">
             <label class="da-label" for="da-phone">Phone <span class="req">*</span></label>
-            <input class="da-input" id="da-phone" name="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="(555)555-5555">
+            <input class="da-input" id="da-phone" name="phone" type="tel" inputmode="numeric" autocomplete="off" placeholder="(555) 555-5555">
             <div class="da-err-msg">Enter a 10-digit phone number.</div>
           </div>
 
@@ -1774,7 +1780,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     let d = String(s).replace(/\D/g, "");
     if (d.length === 11 && d[0] === "1") d = d.slice(1); // drop leading country code
     if (d.length !== 10) return String(s).trim();        // leave non-standard numbers untouched
-    return "(" + d.slice(0,3) + ")" + d.slice(3,6) + "-" + d.slice(6);
+    return "(" + d.slice(0,3) + ") " + d.slice(3,6) + "-" + d.slice(6);
   }
 
   function sortList(list) {
@@ -2056,15 +2062,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
   pocEl.addEventListener('input', ()=>{ pocTouched = true; });
   genEmailEl.addEventListener('input', ()=>{ emailTouched = true; });
 
-  // Phone: auto-format to (xxx)xxx-xxxx as the user types
+  // Phone: auto-format to (xxx) xxx-xxxx as the user types
   const phoneEl = el('da-phone');
   phoneEl.addEventListener('input', ()=>{
     let d = phoneEl.value.replace(/\D/g, '');
     if (d.length > 10 && d[0] === '1') d = d.slice(1); // tolerate a leading country code
     d = d.slice(0, 10);
     let out = '';
-    if (d.length > 6)      out = '(' + d.slice(0,3) + ')' + d.slice(3,6) + '-' + d.slice(6);
-    else if (d.length > 3) out = '(' + d.slice(0,3) + ')' + d.slice(3);
+    if (d.length > 6)      out = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6);
+    else if (d.length > 3) out = '(' + d.slice(0,3) + ') ' + d.slice(3);
     else if (d.length > 0) out = '(' + d;
     phoneEl.value = out;
   });

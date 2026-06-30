@@ -706,9 +706,18 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
 .da-check { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text); user-select: none; }
 .da-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; margin: 0; }
 .da-check-sub { font-weight: 400; color: var(--text-muted); }
-.da-signer2 { grid-column: 1 / -1; display: none; gap: 16px 18px; grid-template-columns: 1fr 1fr; padding: 16px; border: 1px dashed var(--border2); border-radius: var(--radius); background: rgba(30,65,100,0.03); }
-.da-signer2.show { display: grid; }
-@media (max-width: 720px) { .da-signer2 { grid-template-columns: 1fr; } }
+.da-signers-extra { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 14px; }
+.da-signers-extra:empty { display: none; }
+.da-signer-block { display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px dashed var(--border2); border-radius: var(--radius); background: rgba(30,65,100,0.03); }
+.da-signer-block-head { display: flex; align-items: center; justify-content: space-between; }
+.da-signer-block-title { font-family: "Archivo", sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+.da-remove-signer { background: none; border: none; color: var(--coral); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: color 0.12s, background 0.12s; }
+.da-remove-signer:hover { color: #fff; background: var(--coral); }
+.da-signer-block-grid { display: grid; gap: 16px 18px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 720px) { .da-signer-block-grid { grid-template-columns: 1fr; } }
+.da-add-row { grid-column: 1 / -1; }
+.da-add-signer { background: var(--accent-light); color: var(--accent); border: 1px dashed var(--accent-border); border-radius: var(--radius); padding: 9px 16px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s, border-style 0.12s; }
+.da-add-signer:hover { background: var(--accent); color: #fff; border-color: var(--accent); border-style: solid; }
 .da-subhead { font-family: "Archivo", sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 14px; }
 .da-divider { height: 1px; background: var(--border2); margin: 26px 0 22px; }
 .da-ac { position: relative; }
@@ -1543,21 +1552,10 @@ body { background: var(--bg); color: var(--text); font-family: "Archivo", sans-s
             <div class="da-err-msg">Enter a valid signing email.</div>
           </div>
 
-          <div class="da-field da-check-row">
-            <label class="da-check"><input type="checkbox" id="da-s2-toggle"> Add a second signer <span class="da-check-sub">&mdash; if there's a second owner on title</span></label>
-          </div>
+          <div class="da-signers-extra" id="da-signers-extra"></div>
 
-          <div class="da-signer2" id="da-signer2">
-            <div class="da-field">
-              <label class="da-label" for="da-s2-name">Signer 2 Name <span class="req">*</span></label>
-              <input class="da-input" id="da-s2-name" name="signer2" type="text" autocomplete="off" placeholder="Full legal name of second signer">
-              <div class="da-err-msg">Enter the second signer's name.</div>
-            </div>
-            <div class="da-field">
-              <label class="da-label" for="da-s2-email">Signer 2 Email <span class="req">*</span></label>
-              <input class="da-input" id="da-s2-email" name="signer2Email" type="email" autocomplete="off" placeholder="signer2@email.com">
-              <div class="da-err-msg">Enter a valid signing email.</div>
-            </div>
+          <div class="da-add-row">
+            <button type="button" class="da-add-signer" id="da-add-signer">+ Add another signer</button>
           </div>
         </div>
 
@@ -2118,17 +2116,52 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     });
   });
 
-  // show / hide the second signer
-  const s2Toggle = el('da-s2-toggle'), s2Box = el('da-signer2');
-  s2Toggle.addEventListener('change', ()=>{
-    s2Box.classList.toggle('show', s2Toggle.checked);
-    if(!s2Toggle.checked){
-      ['da-s2-name','da-s2-email'].forEach(id=>{
-        el(id).classList.remove('err');
-        el(id).closest('.da-field').classList.remove('show-err');
-      });
-    }
-  });
+  // additional signers — add as many as needed (Signer 1 is the primary signer above)
+  const extraWrap = el('da-signers-extra');
+
+  function renumberSigners(){
+    extraWrap.querySelectorAll('.da-signer-block').forEach((block, i)=>{
+      const n = i + 2;
+      block.dataset.n = n;
+      block.querySelector('.da-signer-block-title').textContent = 'Signer ' + n;
+      const nameInp = block.querySelector('.da-extra-name');
+      const emailInp = block.querySelector('.da-extra-email');
+      nameInp.name = 'signer' + n;
+      emailInp.name = 'signer' + n + 'Email';
+      block.querySelector('.da-extra-name-label').innerHTML = 'Signer ' + n + ' Name <span class="req">*</span>';
+      block.querySelector('.da-extra-email-label').innerHTML = 'Signer ' + n + ' Email <span class="req">*</span>';
+    });
+  }
+
+  function addSigner(){
+    const block = document.createElement('div');
+    block.className = 'da-signer-block';
+    block.innerHTML =
+      '<div class="da-signer-block-head">' +
+        '<span class="da-signer-block-title">Signer</span>' +
+        '<button type="button" class="da-remove-signer">Remove</button>' +
+      '</div>' +
+      '<div class="da-signer-block-grid">' +
+        '<div class="da-field">' +
+          '<label class="da-label da-extra-name-label">Signer Name <span class="req">*</span></label>' +
+          '<input class="da-input da-extra-name" type="text" autocomplete="off" placeholder="Full legal name">' +
+          '<div class="da-err-msg">Enter the signer\'s name.</div>' +
+        '</div>' +
+        '<div class="da-field">' +
+          '<label class="da-label da-extra-email-label">Signer Email <span class="req">*</span></label>' +
+          '<input class="da-input da-extra-email" type="email" autocomplete="off" placeholder="signer@email.com">' +
+          '<div class="da-err-msg">Enter a valid signing email.</div>' +
+        '</div>' +
+      '</div>';
+    block.querySelector('.da-remove-signer').addEventListener('click', ()=>{
+      block.remove();
+      renumberSigners();
+    });
+    extraWrap.appendChild(block);
+    renumberSigners();
+    block.querySelector('.da-extra-name').focus();
+  }
+  el('da-add-signer').addEventListener('click', addSigner);
 
   // Sending ACQ selector (single-select)
   document.querySelectorAll('.da-acq-btn').forEach(btn=>{
@@ -2157,16 +2190,18 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
       if(bad && !firstBad) firstBad = inp;
       if(bad) ok = false;
     });
-    if(s2Toggle.checked){
-      [['da-s2-name',false],['da-s2-email',true]].forEach(pair=>{
-        const inp = el(pair[0]), wrap = inp.closest('.da-field'), v = inp.value.trim();
+    extraWrap.querySelectorAll('.da-signer-block').forEach(block=>{
+      const nameInp = block.querySelector('.da-extra-name');
+      const emailInp = block.querySelector('.da-extra-email');
+      [[nameInp,false],[emailInp,true]].forEach(pair=>{
+        const inp = pair[0], wrap = inp.closest('.da-field'), v = inp.value.trim();
         const bad = !v || (pair[1] && !emailRe.test(v));
         wrap.classList.toggle('show-err', bad);
         inp.classList.toggle('err', bad);
         if(bad && !firstBad) firstBad = inp;
         if(bad) ok = false;
       });
-    }
+    });
     if(firstBad) firstBad.focus();
     return ok;
   }
@@ -2178,10 +2213,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     if(acqVal) lines.push('Sr. ACQ - ' + acqVal + (acqEmail ? ' (' + acqEmail + ')' : ''));
     lines.push('Signer Name - '   + v('da-signer'));
     lines.push('Signing Email - ' + v('da-sign-email'));
-    if(s2Toggle.checked){
-      lines.push('Signer 2 Name - '  + v('da-s2-name'));
-      lines.push('Signer 2 Email - ' + v('da-s2-email'));
-    }
+    extraWrap.querySelectorAll('.da-signer-block').forEach(block=>{
+      const n = block.dataset.n;
+      lines.push('Signer ' + n + ' Name - '  + block.querySelector('.da-extra-name').value.trim());
+      lines.push('Signer ' + n + ' Email - ' + block.querySelector('.da-extra-email').value.trim());
+    });
     lines.push('Name on Deed - '  + v('da-deed'));
     lines.push('Purchase Price - ' + (v('da-price') ? '$'+v('da-price') : ''));
     lines.push('EMD - '           + (v('da-emd')   ? '$'+v('da-emd')   : ''));
@@ -2246,9 +2282,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); }
     acClose();
     autoGrow(); updateChips();
     fields.forEach(f=>{ el(f.id).classList.remove('err'); el(f.id).closest('.da-field').classList.remove('show-err'); });
-    s2Toggle.checked = false;
-    s2Box.classList.remove('show');
-    ['da-s2-name','da-s2-email'].forEach(id=>{ el(id).classList.remove('err'); el(id).closest('.da-field').classList.remove('show-err'); });
+    extraWrap.innerHTML = '';
     el('da-submit').disabled = false;
     el('da-submit').innerHTML = 'Send to TC &rarr;';
     el('da-status').textContent = '';
